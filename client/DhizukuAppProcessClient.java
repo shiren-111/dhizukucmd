@@ -341,19 +341,34 @@ public class DhizukuAppProcessClient {
 
         Object result;
         Method callAttribution = null;
-        Method callString = null;
+        Method callString6 = null;
+        Method callString5 = null;
+        Method callString4 = null;
         for (Method m : provider.getClass().getMethods()) {
             if (!"call".equals(m.getName())) continue;
             Class<?>[] pt = m.getParameterTypes();
-            if (pt.length != 5) continue;
-            if ("android.content.AttributionSource".equals(pt[0].getName())) callAttribution = m;
-            else if (pt[0] == String.class) callString = m;
+            if (pt.length == 5 && "android.content.AttributionSource".equals(pt[0].getName())) {
+                callAttribution = m;
+            } else if (pt.length == 6 && pt[0] == String.class) {
+                callString6 = m;
+            } else if (pt.length == 5 && pt[0] == String.class) {
+                callString5 = m;
+            } else if (pt.length == 4 && pt[0] == String.class) {
+                callString4 = m;
+            }
         }
         if (callAttribution != null) {
             Object attribution = ctx.getClass().getMethod("getAttributionSource").invoke(ctx);
             result = callAttribution.invoke(provider, attribution, AUTHORITY, "client", null, extras);
-        } else if (callString != null) {
-            result = callString.invoke(provider, SHELL_PKG, AUTHORITY, "client", null, extras);
+        } else if (callString6 != null) {
+            // Android 11: (callingPkg, attributionTag, authority, method, arg, extras)
+            result = callString6.invoke(provider, SHELL_PKG, null, AUTHORITY, "client", null, extras);
+        } else if (callString5 != null) {
+            // Android 10: (callingPkg, authority, method, arg, extras)
+            result = callString5.invoke(provider, SHELL_PKG, AUTHORITY, "client", null, extras);
+        } else if (callString4 != null) {
+            // Android 9: (callingPkg, method, arg, extras)
+            result = callString4.invoke(provider, SHELL_PKG, "client", null, extras);
         } else {
             throw new IllegalStateException("IContentProvider.call not found");
         }
