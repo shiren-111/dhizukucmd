@@ -136,7 +136,7 @@ public class DhizukuAppProcessClient {
         System.out.println("  keyguard on|off                锁屏 (on=启用; 部分 OEM 拒绝关闭)");
         System.out.println("  secure <key> <value>           setSecureSetting（DO 白名单: default_input_method/skip_first_use_hints/location_mode）");
         System.out.println("  global <key> <value>           setGlobalSetting");
-        System.out.println("  system <key> <value>           setSystemSetting (Android 9+)");
+        System.out.println("  system <key> <value>           setSystemSetting (Android 9+; null 需 12+)");
         System.out.println("  max-time-lock <ms>             最大自动锁屏时间 (0=恢复默认)");
         System.out.println("  password-quality <0-6>         密码质量 (0=不限制)");
         System.out.println("  password-min-length <n>        密码最小长度 (0=不限制; 自动临时提升 quality 至 NUMERIC)");

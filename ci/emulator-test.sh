@@ -81,8 +81,13 @@ run app-status com.android.settings
 run block-uninstall com.android.settings off
 
 echo "== system setting set/unset =="
-run system screen_off_timeout 600000 || true
-run system screen_off_timeout null || true
+run system screen_off_timeout 600000
+SDK=$(adb shell getprop ro.build.version.sdk | tr -d '\r')
+if [ "$SDK" -ge 31 ]; then
+  run system screen_off_timeout null
+else
+  echo "skip system null: SettingsProvider rejects null before API 31 (sdk=$SDK)"
+fi
 
 echo "== secure skip_first_use_hints set/unset =="
 run secure skip_first_use_hints 1
