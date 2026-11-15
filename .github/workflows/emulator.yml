@@ -51,5 +51,7 @@ jobs:
             logcat.txt
             device_policy.txt
             package.txt
+            account.txt
+            users.txt
             help.txt
           if-no-files-found: ignore
