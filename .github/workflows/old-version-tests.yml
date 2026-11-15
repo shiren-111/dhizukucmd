@@ -34,6 +34,7 @@ jobs:
 
       - name: Run emulator test for ${{ matrix.apk }} API ${{ matrix.api_level }}
         uses: reactivecircus/android-emulator-runner@v2
+        id: test
         with:
           api-level: ${{ matrix.api_level }}
           system-image-api-level: ${{ matrix.api_level }}
@@ -46,11 +47,16 @@ jobs:
             -camera-back none -camera-front none
           script: DHIZUKU_APK=${{ matrix.apk }} bash ci/emulator-test.sh
 
+      - name: Sanitize artifact name
+        id: sanitize
+        run: |
+          echo "safe=$(echo '${{ matrix.apk }}' | sed 's|/|-|g; s|test-apks/||')" >> $GITHUB_OUTPUT
+
       - name: Upload debug artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: debug-${{ matrix.apk }}-api-${{ matrix.api_level }}
+          name: debug-${{ steps.sanitize.outputs.safe }}-api-${{ matrix.api_level }}
           path: |
             screenshot.png
             logcat.txt

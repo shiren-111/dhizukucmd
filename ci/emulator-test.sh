@@ -8,6 +8,7 @@ DO_COMPONENT="$PKG/.server.DhizukuDAReceiver"
 CLIENT=DhizukuAppProcessClient
 CP=/data/local/tmp/dhizuku_api.dex:/data/local/tmp/dhizuku_api2.dex:/data/local/tmp/DhizukuClient.dex
 APK_FILE="${DHIZUKU_APK:-Dhizuku.apk}"
+API_DEX_DIR="${DHIZUKU_API_DEX_DIR:-api-dex}"
 
 debug_dump() {
   adb exec-out screencap -p > screenshot.png 2>/dev/null || true
@@ -69,12 +70,14 @@ adb shell am start -n "$PKG/.ui.activity.SettingsActivity" || true
 sleep 5
 adb shell input keyevent 3 || true
 
-echo "== extract Dhizuku dex and push client =="
-rm -rf dex
-mkdir -p dex
-unzip -o "$APK_FILE" 'classes*.dex' -d dex
-adb push dex/classes.dex /data/local/tmp/dhizuku_api.dex
-adb push dex/classes2.dex /data/local/tmp/dhizuku_api2.dex
+echo "== push latest API dex and client =="
+adb push "$API_DEX_DIR/classes.dex" /data/local/tmp/dhizuku_api.dex
+if [ -f "$API_DEX_DIR/classes2.dex" ]; then
+  adb push "$API_DEX_DIR/classes2.dex" /data/local/tmp/dhizuku_api2.dex
+else
+  # 创建空文件避免 classpath 报错
+  adb shell "touch /data/local/tmp/dhizuku_api2.dex"
+fi
 adb push DhizukuClient.dex /data/local/tmp/DhizukuClient.dex
 
 run() {
