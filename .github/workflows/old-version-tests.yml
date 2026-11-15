@@ -59,4 +59,3 @@ jobs:
             account.txt
             users.txt
             help.txt
-        if-no-files-found: ignore
