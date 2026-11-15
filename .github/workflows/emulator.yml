@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       api_levels:
-        description: "JSON array of API levels"
+        description: 'JSON array of API levels (quote "37.0" for Android 17)'
         required: true
-        default: "[28,29,30,31,32,33,34,35]"
+        default: '[28,29,30,31,32,33,34,35,36,"37.0"]'
 
 jobs:
   test:
@@ -31,9 +31,11 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api_level }}
+          system-image-api-level: ${{ matrix.api_level }}
           target: default
           arch: x86_64
           disable-animations: true
+          emulator-boot-timeout: 900
           emulator-options: >-
             -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
             -camera-back none -camera-front none
