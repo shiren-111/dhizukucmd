@@ -3,15 +3,20 @@ name: Android emulator test
 on:
   workflow_dispatch:
     inputs:
-      api_level:
-        description: "Android API level (28-35)"
+      api_levels:
+        description: "JSON array of API levels"
         required: true
-        default: "33"
+        default: "[28,29,30,31,32,33,34,35]"
 
 jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        api_level: ${{ fromJSON(inputs.api_levels) }}
     steps:
       - uses: actions/checkout@v4
 
@@ -22,10 +27,10 @@ jobs:
           sudo udevadm trigger --name-match=kvm
           ls -l /dev/kvm
 
-      - name: Run emulator tests
+      - name: Run emulator tests (API ${{ matrix.api_level }})
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: ${{ inputs.api_level }}
+          api-level: ${{ matrix.api_level }}
           target: default
           arch: x86_64
           disable-animations: true
@@ -38,7 +43,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: debug-api-${{ inputs.api_level }}
+          name: debug-api-${{ matrix.api_level }}
           path: |
             screenshot.png
             logcat.txt
