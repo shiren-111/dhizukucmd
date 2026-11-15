@@ -7,6 +7,7 @@ PKG=com.rosan.dhizuku
 DO_COMPONENT="$PKG/.server.DhizukuDAReceiver"
 CLIENT=DhizukuAppProcessClient
 CP=/data/local/tmp/dhizuku_api.dex:/data/local/tmp/dhizuku_api2.dex:/data/local/tmp/DhizukuClient.dex
+APK_FILE="${DHIZUKU_APK:-Dhizuku.apk}"
 
 debug_dump() {
   adb exec-out screencap -p > screenshot.png 2>/dev/null || true
@@ -44,8 +45,8 @@ if [ "$SDK" -ge 36 ]; then
   sleep 2
 fi
 
-echo "== install Dhizuku =="
-adb install -r Dhizuku.apk
+echo "== install Dhizuku from $APK_FILE =="
+adb install -r "$APK_FILE"
 
 echo "== set device owner =="
 OWNER_SET=0
@@ -71,7 +72,7 @@ adb shell input keyevent 3 || true
 echo "== extract Dhizuku dex and push client =="
 rm -rf dex
 mkdir -p dex
-unzip -o Dhizuku.apk 'classes*.dex' -d dex
+unzip -o "$APK_FILE" 'classes*.dex' -d dex
 adb push dex/classes.dex /data/local/tmp/dhizuku_api.dex
 adb push dex/classes2.dex /data/local/tmp/dhizuku_api2.dex
 adb push DhizukuClient.dex /data/local/tmp/DhizukuClient.dex

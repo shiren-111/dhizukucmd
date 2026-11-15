@@ -1,0 +1,62 @@
+name: Old Dhizuku versions emulator test
+
+on:
+  workflow_dispatch:
+    inputs:
+      api_levels:
+        description: 'JSON array of API levels'
+        required: false
+        default: '[28,33]'
+      apks:
+        description: 'JSON array of APK paths under test-apks/'
+        required: false
+        default: '["test-apks/Dhizuku_v2.9-testkey.apk","test-apks/Dhizuku_v2.9.1-testkey.apk","test-apks/Dhizuku_v2.10-testkey.apk","test-apks/Dhizuku_v2.10.1-testkey.apk","test-apks/Dhizuku_2.11.1-testkey.apk","test-apks/Dhizuku_v2.11-testkey.apk","test-apks/Dhizuku_v2.11.2-testkey.apk","test-apks/Dhizuku_v2.12.0-testkey.apk"]'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        apk: ${{ fromJSON(inputs.apks) }}
+        api_level: ${{ fromJSON(inputs.api_levels) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          ls -l /dev/kvm
+
+      - name: Run emulator test for ${{ matrix.apk }} API ${{ matrix.api_level }}
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api_level }}
+          system-image-api-level: ${{ matrix.api_level }}
+          target: default
+          arch: x86_64
+          disable-animations: true
+          emulator-boot-timeout: 900
+          emulator-options: >-
+            -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+            -camera-back none -camera-front none
+          script: DHIZUKU_APK=${{ matrix.apk }} bash ci/emulator-test.sh
+
+      - name: Upload debug artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-${{ matrix.apk }}-api-${{ matrix.api_level }}
+          path: |
+            screenshot.png
+            logcat.txt
+            device_policy.txt
+            package.txt
+            account.txt
+            users.txt
+            help.txt
+        if-no-files-found: ignore
