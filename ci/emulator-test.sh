@@ -80,6 +80,10 @@ run block-uninstall com.android.settings on
 run app-status com.android.settings
 run block-uninstall com.android.settings off
 
+echo "== system setting set/unset =="
+run system screen_off_timeout 600000 || true
+run system screen_off_timeout null || true
+
 echo "== secure skip_first_use_hints set/unset =="
 run secure skip_first_use_hints 1
 run secure skip_first_use_hints null
